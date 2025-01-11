@@ -30,14 +30,27 @@ def scoreboard(text, color, score):
 
     surface.blit(text_surface, ((100 - text_surface.get_width()) // 2,50))
     surface.blit(wins, ((100 - wins.get_width()) // 2,75))
+    return surface
 
+def button(text, width, height):
+    surface = pygame.Surface((width, height))
+    surface.convert_alpha()
+    surface.fill(theme.BACKGROUND)
+
+    text_font = pygame.font.SysFont('Arial', 32, bold=True)
+    pygame.draw.rect(surface, theme.BOARD, pygame.Rect(0,0,width,height), border_radius=15)
+    text_surface = text_font.render(text, True, (255,255,255))
+    text_surface.convert_alpha()
+
+    surface.blit(text_surface, ((width - text_surface.get_width())// 2, (height - text_surface.get_height()) // 2))
     return surface
 
 class Connect4Game:
     def __init__(self):
         self.game = Game()
-        
+
         pygame.init()
+        pygame.font.init()
         pygame.display.set_caption("Connect 4")
         
         self.screen = pygame.display.set_mode([800, 500])
@@ -46,6 +59,8 @@ class Connect4Game:
 
         self.player1_scoreboard = scoreboard("PLAYER 1", theme.RED, 0)
         self.player2_scoreboard = scoreboard("AI", theme.YELLOW, 10)
+
+        self.reset_button = button("RESET", 250, 50)
 
         self.isRunning = True
         self.posX = 0
@@ -95,6 +110,9 @@ class Connect4Game:
                         continue
                     self.player1 = not self.player1
                     draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30, theme.YELLOW if self.player1 else theme.RED)
+                else:
+                    if self.reset_button.get_rect().collidepoint((pos[0] - 500 - 25, pos[1] - 200)):
+                        self.board = [[0 for _ in range(COLUMNS)] for _ in range(ROWS)]
 
     def run(self):
         while self.isRunning:
@@ -108,6 +126,7 @@ class Connect4Game:
 
             s.blit(self.player1_scoreboard, (25,45))
             s.blit(self.player2_scoreboard, (175,45))
+            s.blit(self.reset_button, (25,200))
 
             self.screen.blit(s, (500, 0))
 
