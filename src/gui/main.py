@@ -1,5 +1,6 @@
 from src.core.game import Game
-from src.core.const import ROWS, COLUMNS
+from src.core import const
+
 from pygame import gfxdraw
 import pygame
 
@@ -33,9 +34,8 @@ def scoreboard(text, color, score):
     return surface
 
 def button(text, width, height):
-    surface = pygame.Surface((width, height))
-    surface.convert_alpha()
-    surface.fill(theme.BACKGROUND)
+    surface = pygame.Surface((width, height), pygame.SRCALPHA)
+    surface.fill((0, 0, 0, 0))
 
     text_font = pygame.font.SysFont('Arial', 32, bold=True)
     pygame.draw.rect(surface, theme.BOARD, pygame.Rect(0,0,width,height), border_radius=15)
@@ -57,62 +57,67 @@ class Connect4Game:
         self.screen.convert_alpha()
         self.screen.fill(theme.BACKGROUND)
 
-        self.player1_scoreboard = scoreboard("PLAYER 1", theme.RED, 0)
-        self.player2_scoreboard = scoreboard("AI", theme.YELLOW, 10)
+        self.player1_wins = 0
+        self.player2_wins = 0
+
+        self.player1_color = theme.YELLOW
+        self.player2_color = theme.RED
+
+        self.player1_scoreboard = scoreboard("PLAYER 1", self.player1_color, self.player1_wins)
+        self.player2_scoreboard = scoreboard("AI", self.player2_color, self.player2_wins)
 
         self.reset_button = button("RESET", 250, 50)
 
         self.isRunning = True
         self.posX = 0
 
-        # REMOVE
-        self.board = [[0 for _ in range(COLUMNS)] for _ in range(ROWS)]
-        self.player1 = True
-        # REMOVE
-
     def draw_board(self):
         size = 30
-        for j in range(COLUMNS):
-            for i in range(ROWS):
-                match (self.board[i][j]):
+        for i in range(self.game.rows):
+            for j in range(self.game.columns):
+                match (self.game.board[i][j]):
                     case 1:
-                        color = theme.YELLOW
+                        color = self.player1_color
                     case 2:
-                        color = theme.RED
+                        color = self.player2_color
                     case _:
                         color = (theme.BACKGROUND, theme.BACKGROUND)
-                draw_token(self.screen, (10 + j * (size * 2 + 10) + size), (500 - size - 10) - (size * 2 + 10) * i, size, color)
-                if j != COLUMNS - 1:
+                draw_token(self.screen, (10 + j * (size * 2 + 10) + size), (500 - size - 10) - (size * 2 + 10) * (self.game.rows - i - 1), size, color)
+                if j != self.game.columns - 1:
                     gfxdraw.line(self.screen, (10 + j * (size * 2 + 10) + size) + 35, (500 - size - 10) - (size * 2 + 10) * i - 30, (10 + j * (size * 2 + 10) + size) + 35, (500 - size - 10) - (size * 2 + 10) * i + 380, (0,100,155))
 
     def draw_drop(self, posX):
         pygame.draw.rect(self.screen, theme.BACKGROUND, (0,0, 500, 500))
         self.posX = posX
-        draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30, theme.YELLOW if self.player1 else theme.RED)
+        draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30,  self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
 
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.isRunning = False
             if event.type == pygame.MOUSEMOTION:
-                self.draw_drop(event.pos[0])
+                if self.game.winner is None:
+                    self.draw_drop(event.pos[0])
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
                 if 0 < pos[0] < 500:
                     col = min((max(pos[0] - 5, 0)) // 70, 6)
-                    s = False
-                    for _ in range(ROWS):
-                        if self.board[_][col] == 0:
-                            self.board[_][col] = 1 if self.player1 else 2
-                            s = True
-                            break
-                    if not s:
-                        continue
-                    self.player1 = not self.player1
-                    draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30, theme.YELLOW if self.player1 else theme.RED)
+                    try:
+                        if self.game.winner:
+                            continue
+                        
+                        self.game.make_move(col)
+                        print('\n'.join([str(a) for a in self.game.board]))
+
+                        draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30,  self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
+                        if self.game.winner is not None:
+                            print("Wygrał", self.game.winner)
+                    except Exception as e:
+                        print(e)
                 else:
                     if self.reset_button.get_rect().collidepoint((pos[0] - 500 - 25, pos[1] - 200)):
-                        self.board = [[0 for _ in range(COLUMNS)] for _ in range(ROWS)]
+                        self.game.new_game()
+                        self.screen.fill(theme.BACKGROUND)
 
     def run(self):
         while self.isRunning:
