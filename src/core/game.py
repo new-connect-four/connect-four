@@ -65,7 +65,7 @@ class Game:
         while (
             0 <= current_row < self.rows
             and 0 <= current_column < self.columns
-            and self.board[row][column] == current_player
+            and self.board[current_row][current_column] == current_player
         ):
             count += 1
             current_row += delta_row
