@@ -2,3 +2,6 @@ ROWS = 6
 COLUMNS = 7
 PLAYER_ONE = 1
 PLAYER_TWO = 2
+
+INVALID_MOVE_ERROR = "Invalid move"
+FULL_COLUMN_ERROR = "Column is full"
