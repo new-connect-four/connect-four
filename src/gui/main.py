@@ -33,16 +33,17 @@ def scoreboard(text, color, score):
     surface.blit(wins, ((100 - wins.get_width()) // 2,75))
     return surface
 
-def button(text, width, height):
+def button(text, width, height, highlight=False):
     surface = pygame.Surface((width, height), pygame.SRCALPHA)
     surface.fill((0, 0, 0, 0))
 
     text_font = pygame.font.SysFont('Arial', 32, bold=True)
-    pygame.draw.rect(surface, theme.BOARD, pygame.Rect(0,0,width,height), border_radius=15)
+    color = theme.BOARD_HIGHLIGHT if highlight else theme.BOARD
+    pygame.draw.rect(surface, color, pygame.Rect(0, 0, width, height), border_radius=15)
     text_surface = text_font.render(text, True, (255,255,255))
     text_surface.convert_alpha()
 
-    surface.blit(text_surface, ((width - text_surface.get_width())// 2, (height - text_surface.get_height()) // 2))
+    surface.blit(text_surface, ((width - text_surface.get_width()) // 2, (height - text_surface.get_height()) // 2))
     return surface
 
 class Connect4Game:
@@ -91,6 +92,49 @@ class Connect4Game:
         self.posX = posX
         draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30,  self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
 
+    def game_over_screen(self, winner_name, winner_color):
+        overlay = pygame.Surface((800, 500), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))
+        self.screen.blit(overlay, (0, 0))
+
+        surface = pygame.Surface((400, 200), pygame.SRCALPHA)
+        surface.fill((0, 0, 0, 0))
+
+        winner_font = pygame.font.SysFont('Arial', 24, bold=True)
+
+        pygame.draw.rect(surface, theme.BOARD, pygame.Rect(0, 0, 400, 200), border_radius=15)
+        draw_token(surface, 200, 50, 30, winner_color)
+
+        winner_text = winner_font.render(f"{winner_name} WINS!", True, (255, 255, 255))
+        winner_text.convert_alpha()
+        surface.blit(winner_text, ((400 - winner_text.get_width()) // 2, 100))
+
+        new_game_button = button("NEW GAME", 200, 50)
+        button_rect = new_game_button.get_rect(center=(200, 170))
+        surface.blit(new_game_button, button_rect.topleft)
+
+        self.screen.blit(surface, (200, 150))
+        pygame.display.flip()
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                if event.type == pygame.MOUSEMOTION:
+                    pos = pygame.mouse.get_pos()
+                    highlight = button_rect.collidepoint(pos[0] - 200, pos[1] - 150)
+                    new_game_button = button("NEW GAME", 200, 50, highlight)
+                    surface.blit(new_game_button, button_rect.topleft)
+                    self.screen.blit(surface, (200, 150))
+                    pygame.display.flip()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    pos = pygame.mouse.get_pos()
+                    if button_rect.collidepoint(pos[0] - 200, pos[1] - 150):
+                        self.game.new_game()
+                        self.screen.fill(theme.BACKGROUND)
+                        return
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -114,6 +158,12 @@ class Connect4Game:
                         draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30,  self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
                         if self.game.winner is not None:
                             print("Wygrał", self.game.winner)
+                            winner_name = "PLAYER 1" if self.game.winner == const.PLAYER_ONE else "AI"
+                            winner_color = self.player1_color if self.game.winner == const.PLAYER_ONE else self.player2_color
+                            self.draw_board()
+                            pygame.display.flip()
+                            pygame.time.delay(200)
+                            self.game_over_screen(winner_name, winner_color)
                     except Exception as e:
                         print(e)
                 else:
