@@ -99,6 +99,8 @@ class Connect4Game:
                 if self.game.winner is None:
                     self.draw_drop(event.pos[0])
             if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 4 or event.button == 5:  # Ignoruj scrolla myszy
+                    continue
                 pos = pygame.mouse.get_pos()
                 if 0 < pos[0] < 500:
                     col = min((max(pos[0] - 5, 0)) // 70, 6)
