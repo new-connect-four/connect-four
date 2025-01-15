@@ -1,6 +1,5 @@
 from src.core.game import Game
 from src.core import const
-
 from pygame import gfxdraw
 import pygame
 
@@ -67,10 +66,14 @@ class Connect4Game:
         self.player1_scoreboard = scoreboard("PLAYER 1", self.player1_color, self.player1_wins)
         self.player2_scoreboard = scoreboard("AI", self.player2_color, self.player2_wins)
 
-        self.reset_button = button("RESET", 250, 50)
+        self.new_game_button = button("X", 50, 50)
 
         self.isRunning = True
         self.posX = 0
+
+    def update_scoreboards(self):
+        self.player1_scoreboard = scoreboard("PLAYER 1", self.player1_color, self.player1_wins)
+        self.player2_scoreboard = scoreboard("AI", self.player2_color, self.player2_wins)
 
     def draw_board(self):
         size = 30
@@ -83,16 +86,17 @@ class Connect4Game:
                         color = self.player2_color
                     case _:
                         color = (theme.BACKGROUND, theme.BACKGROUND)
-                draw_token(self.screen, (10 + j * (size * 2 + 10) + size), (500 - size - 10) - (size * 2 + 10) * (self.game.rows - i - 1), size, color)
+
+                draw_token(self.screen, (160 + j * (size * 2 + 10) + size), (500 - size - 10) - (size * 2 + 10) * (self.game.rows - i - 1), size, color)
                 if j != self.game.columns - 1:
-                    gfxdraw.line(self.screen, (10 + j * (size * 2 + 10) + size) + 35, (500 - size - 10) - (size * 2 + 10) * i - 30, (10 + j * (size * 2 + 10) + size) + 35, (500 - size - 10) - (size * 2 + 10) * i + 380, (0,100,155))
+                    gfxdraw.line(self.screen, (160 + j * (size * 2 + 10) + size) + 35, (500 - size - 10) - (size * 2 + 10) * i - 30, (160 + j * (size * 2 + 10) + size) + 35, (500 - size - 10) - (size * 2 + 10) * i + 380, (0,100,155))
 
     def draw_drop(self, posX):
-        pygame.draw.rect(self.screen, theme.BACKGROUND, (0,0, 500, 500))
+        pygame.draw.rect(self.screen, theme.BACKGROUND, (0,0, 800, 500))
         self.posX = posX
-        draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30,  self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
+        draw_token(self.screen, min(max(self.posX, 190), 610), 35, 30, self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
 
-    def game_over_screen(self, winner_name, winner_color):
+    def winner_screen(self, winner_name, winner_color):
         overlay = pygame.Surface((800, 500), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 128))
         self.screen.blit(overlay, (0, 0))
@@ -146,46 +150,63 @@ class Connect4Game:
                 if event.button == 4 or event.button == 5:  # Ignoruj scrolla myszy
                     continue
                 pos = pygame.mouse.get_pos()
-                if 0 < pos[0] < 500:
-                    col = min((max(pos[0] - 5, 0)) // 70, 6)
+                if 150 < pos[0] < 650:
+                    col = min((max(pos[0] - 155, 0)) // 70, 6)
                     try:
                         if self.game.winner:
                             continue
-                        
                         self.game.make_move(col)
-                        print('\n'.join([str(a) for a in self.game.board]))
 
-                        draw_token(self.screen, min(max(self.posX, 40), 460), 35, 30,  self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
+                        print('\n'.join([str(a) for a in self.game.board]))
+                        draw_token(self.screen, min(max(self.posX, 190), 610), 35, 30, self.player1_color if self.game.current_player == const.PLAYER_ONE else self.player2_color)
+
                         if self.game.winner is not None:
                             print("Wygrał", self.game.winner)
                             winner_name = "PLAYER 1" if self.game.winner == const.PLAYER_ONE else "AI"
                             winner_color = self.player1_color if self.game.winner == const.PLAYER_ONE else self.player2_color
+                            if self.game.winner == const.PLAYER_ONE:
+                                self.player1_wins += 1
+                            else:
+                                self.player2_wins += 1
+                            self.update_scoreboards()
                             self.draw_board()
                             pygame.display.flip()
                             pygame.time.delay(200)
-                            self.game_over_screen(winner_name, winner_color)
+                            self.winner_screen(winner_name, winner_color)
                     except Exception as e:
                         print(e)
                 else:
-                    if self.reset_button.get_rect().collidepoint((pos[0] - 500 - 25, pos[1] - 200)):
+                    if self.new_game_button.get_rect().collidepoint((pos[0] - 25, pos[1] - 25)):
                         self.game.new_game()
                         self.screen.fill(theme.BACKGROUND)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if self.player1_scoreboard.get_rect(topleft=(25, 155)).collidepoint(pos):
+                    self.player1_color = self.get_next_color(self.player1_color, self.player2_color)
+                    self.update_scoreboards()
+                if self.player2_scoreboard.get_rect(topleft=(675, 155)).collidepoint(pos):
+                    self.player2_color = self.get_next_color(self.player2_color, self.player1_color)
+                    self.update_scoreboards()
+
+    def get_next_color(self, current_color, other_color):
+        colors = [theme.YELLOW, theme.RED, theme.GREEN, theme.PURPLE, theme.WHITE, theme.BLACK]
+        next_index = (colors.index(current_color) + 1) % len(colors)
+        next_color = colors[next_index]
+        if next_color == other_color:
+            next_index = (next_index + 1) % len(colors)
+            next_color = colors[next_index]
+        return next_color
 
     def run(self):
         while self.isRunning:
             self.handle_events()
 
-            pygame.draw.rect(self.screen, theme.BOARD, pygame.Rect(0, 70, 500, 500), border_radius=10)
+            pygame.draw.rect(self.screen, theme.BOARD, pygame.Rect(150, 70, 500, 500), border_radius=10)
             self.draw_board()
 
-            s = pygame.Surface((300,500))
-            s.fill(theme.BACKGROUND)
-
-            s.blit(self.player1_scoreboard, (25,45))
-            s.blit(self.player2_scoreboard, (175,45))
-            s.blit(self.reset_button, (25,200))
-
-            self.screen.blit(s, (500, 0))
+            self.screen.blit(self.player1_scoreboard, (25, 155))
+            self.screen.blit(self.player2_scoreboard, (675, 155))
+            self.screen.blit(self.new_game_button, (5, 5))
 
             pygame.display.flip()
             pygame.time.Clock().tick(60)
