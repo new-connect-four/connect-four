@@ -12,10 +12,8 @@ def initialize_settings():
                 x, y = line.split("=", 1)
                 x = x.strip()
                 y = y.strip()
-                print(x)
                 if x in _default_settings:
                     settings[x] = y
-                    print(settings)
         for key, default_value in _default_settings.items():
             if key not in settings:
                 settings[key] = default_value
@@ -29,7 +27,6 @@ settings = initialize_settings()
 
 
 class Screen:
-
     def __init__(self):
         self.current = "main_menu"
         self.type = "menu"
@@ -43,7 +40,7 @@ class Screen:
                     "#     CONNECT4     #",
                     "####################\n"
                 ], [
-                    ("[ Play ]", "menu", "start_vsplayer"),
+                    ("[ Play ]", "start_game", "game"),
                     ("[ Settings ]", "menu", "settings_scr"),
                     ("[ Exit ]", "exit", "exit")
                 ]
@@ -57,9 +54,7 @@ class Screen:
                     (f"[ Player 2 Disc ] = '{settings["PLAYER2_DISC"]}'\n", "setting", "PLAYER2_DISC"),
                     ("[ Return to Menu ]", "menu", "main_menu")
                 ], "menu"
-            case "change_setting":
-                return f"Current Value: {settings[self.setting]}"
-    def draw(self):
+    def draw(self, game=None):
         curr = self.screens(self.current)
         scrtype = self.type
         match scrtype:
@@ -70,8 +65,19 @@ class Screen:
                     print(i)
                 for i in range(len(options)):
                     print(i, options[i][0], sep=' - ')
-            case "change_setting":
-                print(curr)
+            case "game":
+                print("\n\n")
+                d = (" ",settings["PLAYER1_DISC"],settings["PLAYER2_DISC"])
+                for i in game.board:
+                    for j in i:
+                        print(f"[{d[j]}",end=']')
+                    print("")
+                print("="*21)
+                nmbrs = ''.join(f" {x} " for x in range(7))
+                print(nmbrs)
+
+
+
     def switch(self,screen,scrtype):
         self.type = scrtype
         if scrtype == "setting":
@@ -105,19 +111,50 @@ def main():
             case "menu":
                 x = ''
                 while True:
-                    x = input('')
-                    if x.isdigit():
+                    x = input('\nSelect option: ')
+                    try:
                         x = int(x)
                         screen.switch(curr[1][x][2],curr[1][x][1])
                         break
-                    else:
+                    except:
                         screen.draw()
                         print("\nInvalid input!")
             case "setting":
                 setting = screen.setting
-                x = input('Input new value: ')
-                change_setting(setting,x)
+                x = input('\nInput new value: ')
+                change_setting(setting,x[0])
                 screen.switch("settings_scr","menu")
-
+            case "start_game":
+                game.new_game()
+                screen.type = "game"
+                screen.draw(game)
+                while screen.type == "game":
+                    if game.winner is not None:
+                        while True:
+                            x = input(f'\nPLAYER {game.winner} WON! Would you like to play again? (y/n): ')
+                            if x == 'y':
+                                game.new_game()
+                                screen.draw(game)
+                                break
+                            elif x == 'n':
+                                screen.switch("main_menu","menu")
+                                break
+                            else:
+                                screen.draw(game)
+                                print("\nInvalid input!")
+                    else:
+                        x = input(f"\nCurrent turn: Player {game.current_player}\n\nSelect move (or 'e' to return to menu): ")
+                        if x == 'e':
+                            screen.switch("main_menu", "menu")
+                        else:
+                            try:
+                                x = int(x)
+                                game.make_move(x)
+                                screen.draw(game)
+                            except:
+                                screen.draw(game)
+                                print("\nInvalid input!")
+            case "exit":
+                return
 if __name__ == "__main__":
     main()
