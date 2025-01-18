@@ -11,7 +11,7 @@ def initialize_settings():
             if "=" in line:
                 x, y = line.split("=", 1)
                 x = x.strip()
-                y = y.strip()
+                y = y.strip()[0]
                 if x in _default_settings:
                     settings[x] = y
         for key, default_value in _default_settings.items():
