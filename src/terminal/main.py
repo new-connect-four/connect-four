@@ -1,27 +1,33 @@
 from src.core.game import Game
-
-_default_settings = {
+from src.core.bot import Bot
+from time import sleep
+default_settings = {
     'PLAYER1_DISC' : 'X',
     'PLAYER2_DISC' : 'O'
 }
+
+
 def initialize_settings():
     settings = {}
-    with open("settings.txt", "r+") as file:
-        for line in file:
-            if "=" in line:
-                x, y = line.split("=", 1)
-                x = x.strip()
-                y = y.strip()[0]
-                if x in _default_settings:
-                    settings[x] = y
-        for key, default_value in _default_settings.items():
-            if key not in settings:
-                settings[key] = default_value
-        file.seek(0)
-        file.truncate()
+    try:
+        with open("settings.txt", "r") as file:
+            for line in file:
+                if "=" in line:
+                    x, y = line.split("=", 1)
+                    x = x.strip()
+                    y = y.strip()
+                    if x in default_settings:
+                        settings[x] = y
+    except FileNotFoundError:
+        pass
+    for key, default_value in default_settings.items():
+        if key not in settings:
+            settings[key] = default_value
+    with open("settings.txt", "w") as file:
         for key, value in settings.items():
             file.write(f"{key} = {value}\n")
-        return settings
+    return settings
+
 settings = initialize_settings()
 
 
@@ -40,7 +46,8 @@ class Screen:
                     "#     CONNECT4     #",
                     "####################\n"
                 ], [
-                    ("[ Play ]", "start_game", "game"),
+                    ("[ Play ]", "game", "game_pvp"),
+                    ("[ vs AI ]", "game", "game_bot"),
                     ("[ Settings ]", "menu", "settings_scr"),
                     ("[ Exit ]", "exit", "exit")
                 ]
@@ -66,7 +73,6 @@ class Screen:
                 for i in range(len(options)):
                     print(i, options[i][0], sep=' - ')
             case "game":
-                print("\n\n")
                 d = (" ",settings["PLAYER1_DISC"],settings["PLAYER2_DISC"])
                 for i in game.board:
                     for j in i:
@@ -75,9 +81,6 @@ class Screen:
                 print("="*21)
                 nmbrs = ''.join(f" {x} " for x in range(7))
                 print(nmbrs)
-
-
-
     def switch(self,screen,scrtype):
         self.type = scrtype
         if scrtype == "setting":
@@ -86,7 +89,9 @@ class Screen:
         else:
             self.current = screen
             self.setting = False
-        self.draw()
+            if scrtype != "game":
+                self.draw()
+
 
 def update_settingfile():
     with open("settings.txt", "w+") as file:
@@ -101,6 +106,7 @@ def change_setting(setting,newvalue):
 
 def main():
     game = Game()
+    bot = Bot(game)
     screen = Screen()
     screen.draw()
     #update_settingfile()
@@ -109,11 +115,11 @@ def main():
         curr = screen.screens(screen.current)
         match scrtype:
             case "menu":
-                x = ''
                 while True:
                     x = input('\nSelect option: ')
                     try:
                         x = int(x)
+                        print('')
                         screen.switch(curr[1][x][2],curr[1][x][1])
                         break
                     except:
@@ -124,14 +130,20 @@ def main():
                 x = input('\nInput new value: ')
                 change_setting(setting,x[0])
                 screen.switch("settings_scr","menu")
-            case "start_game":
+            case "game":
                 game.new_game()
-                screen.type = "game"
                 screen.draw(game)
-                while screen.type == "game":
+                while screen.type != "menu":
                     if game.winner is not None:
                         while True:
-                            x = input(f'\nPLAYER {game.winner} WON! Would you like to play again? (y/n): ')
+                            if screen.current == "game_bot":
+                                if game.winner == 1:
+                                    wintext = "\nYOU WIN!"
+                                else:
+                                    wintext = "\nBOT WINS!"
+                            else:
+                                wintext = f"\nPLAYER {game.winner} WINS!"
+                            x = input(wintext + " Would you like to play again? (y/n): ")
                             if x == 'y':
                                 game.new_game()
                                 screen.draw(game)
@@ -143,7 +155,11 @@ def main():
                                 screen.draw(game)
                                 print("\nInvalid input!")
                     else:
-                        x = input(f"\nCurrent turn: Player {game.current_player}\n\nSelect move (or 'e' to return to menu): ")
+                        if screen.current == "game_bot":
+                            text = "\nYour turn!\n\n"
+                        else:
+                            text = f"\nCurrent turn: Player {game.current_player}\n\n"
+                        x = input(text + "Select move (or 'e' to return to menu): ")
                         if x == 'e':
                             screen.switch("main_menu", "menu")
                         else:
@@ -151,6 +167,11 @@ def main():
                                 x = int(x)
                                 game.make_move(x)
                                 screen.draw(game)
+                                if screen.current == "game_bot" and game.winner is None:
+                                    print("\nBot's turn.\n")
+                                    sleep(0.75)
+                                    bot.make_move()
+                                    screen.draw(game)
                             except:
                                 screen.draw(game)
                                 print("\nInvalid input!")
