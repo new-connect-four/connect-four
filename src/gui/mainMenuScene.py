@@ -1,5 +1,7 @@
-import pygame
 import sys
+
+import pygame
+
 import src.gui.theme as theme
 from src.gui.gameScene import button, draw_token
 
@@ -122,9 +124,13 @@ class MainMenuScene:
     def handle_selection(self):
         match self.selected_option:
             case 0:
-                self.scene_manager.switch_scene("NewGameScene", playWithBot=False)
+                self.scene_manager.switch_scene(
+                    "NewGameScene", playWithBot=False
+                )
             case 1:
-                self.scene_manager.switch_scene("NewGameScene", playWithBot=True)
+                self.scene_manager.switch_scene(
+                    "NewGameScene", playWithBot=True
+                )
             case 2:
                 pygame.quit()
                 sys.exit()

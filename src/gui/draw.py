@@ -1,5 +1,6 @@
 import pygame
 from pygame import gfxdraw
+
 from src.gui import theme
 
 
@@ -34,7 +35,9 @@ def button(text, width, height, highlight=False, fontSize=32):
     text_font = pygame.font.SysFont("Arial", fontSize, bold=True)
 
     color = theme.BOARD_HIGHLIGHT if highlight else theme.BOARD
-    pygame.draw.rect(surface, color, pygame.Rect(0, 0, width, height), border_radius=15)
+    pygame.draw.rect(
+        surface, color, pygame.Rect(0, 0, width, height), border_radius=15
+    )
 
     text_surface = text_font.render(text, True, (255, 255, 255))
     text_surface.convert_alpha()

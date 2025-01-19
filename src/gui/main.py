@@ -1,7 +1,8 @@
 import pygame
-from src.gui.sceneManager import SceneManager
-from src.gui.mainMenuScene import MainMenuScene
+
 from src.gui.gameScene import GameScene
+from src.gui.mainMenuScene import MainMenuScene
+from src.gui.sceneManager import SceneManager
 
 pygame.init()
 pygame.font.init()
