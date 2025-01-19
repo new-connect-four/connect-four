@@ -1,13 +1,13 @@
 import sys
+
 import pygame
 from pygame import gfxdraw
 
-from src.core.game import Game
-from src.core.bot import Bot
-
 from src.core import const
+from src.core.bot import Bot
+from src.core.game import Game
 from src.gui import theme
-from src.gui.draw import draw_token, button, scoreboard
+from src.gui.draw import button, draw_token, scoreboard
 
 
 def clamp(minimum, val, maximum):
@@ -69,7 +69,10 @@ class GameScene:
 
     def render(self):
         pygame.draw.rect(
-            self.screen, theme.BOARD, pygame.Rect(150, 70, 500, 500), border_radius=10
+            self.screen,
+            theme.BOARD,
+            pygame.Rect(150, 70, 500, 500),
+            border_radius=10,
         )
         self.draw_board()
 
@@ -117,7 +120,9 @@ class GameScene:
             draw_token(surface, 200, 50, 30, winner_color)
 
         winner_text = winner_font.render(
-            f"{winner_name} WINS!" if not draw else "DRAW!", True, (255, 255, 255)
+            f"{winner_name} WINS!" if not draw else "DRAW!",
+            True,
+            (255, 255, 255),
         )
         winner_text.convert_alpha()
 
@@ -141,7 +146,9 @@ class GameScene:
                         sys.exit()
                     case pygame.MOUSEMOTION:
                         pos = pygame.mouse.get_pos()
-                        highlight = button_rect.collidepoint(pos[0] - 200, pos[1] - 150)
+                        highlight = button_rect.collidepoint(
+                            pos[0] - 200, pos[1] - 150
+                        )
                         new_game_button = button("NEW GAME", 200, 50, highlight)
                         surface.blit(new_game_button, button_rect.topleft)
                         self.screen.blit(surface, (200, 150))
@@ -180,7 +187,11 @@ class GameScene:
                         if self.playWithBot:
                             color = self.player1.color
                         draw_token(
-                            self.screen, clamp(190, self.posX, 610), 35, 30, color
+                            self.screen,
+                            clamp(190, self.posX, 610),
+                            35,
+                            30,
+                            color,
                         )
 
                         if self.playWithBot:
@@ -230,16 +241,16 @@ class GameScene:
 
             case pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                if self.player1_scoreboard.get_rect(topleft=(25, 155)).collidepoint(
-                    pos
-                ):
+                if self.player1_scoreboard.get_rect(
+                    topleft=(25, 155)
+                ).collidepoint(pos):
                     self.player1.color = self.get_next_color(
                         self.player1.color, self.player2.color
                     )
                     self.update_scoreboards()
-                if self.player2_scoreboard.get_rect(topleft=(675, 155)).collidepoint(
-                    pos
-                ):
+                if self.player2_scoreboard.get_rect(
+                    topleft=(675, 155)
+                ).collidepoint(pos):
                     self.player2.color = self.get_next_color(
                         self.player2.color, self.player1.color
                     )
@@ -267,7 +278,8 @@ class GameScene:
                 draw_token(
                     self.screen,
                     (160 + j * (size * 2 + 10) + size),
-                    (500 - size - 10) - (size * 2 + 10) * (self.game.rows - i - 1),
+                    (500 - size - 10)
+                    - (size * 2 + 10) * (self.game.rows - i - 1),
                     size,
                     color,
                 )
