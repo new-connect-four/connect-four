@@ -17,7 +17,7 @@ main_menu_scene = MainMenuScene(screen, scene_manager)
 scene_manager.add_scene("MainMenuScene", main_menu_scene)
 
 connect4_scene = GameScene(screen, scene_manager)
-scene_manager.add_scene("NewGameScene", connect4_scene)
+scene_manager.add_scene("GameScene", connect4_scene)
 
 scene_manager.switch_scene("MainMenuScene")
 
