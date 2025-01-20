@@ -47,7 +47,7 @@ class Screen:
                     "####################\n"
                 ], [
                     ("[ Play ]", "game", "game_pvp"),
-                    ("[ vs AI ]", "game", "game_bot"),
+                    ("[ vs Bot ]", "menu", "difficulty_select"),
                     ("[ Settings ]", "menu", "settings_scr"),
                     ("[ Exit ]", "exit", "exit")
                 ]
@@ -61,6 +61,17 @@ class Screen:
                     (f"[ Player 2 Disc ] = '{settings["PLAYER2_DISC"]}'\n", "setting", "PLAYER2_DISC"),
                     ("[ Return to Menu ]", "menu", "main_menu")
                 ], "menu"
+            case "difficulty_select":
+                return [
+                    "####################",
+                    "#  BOT DIFFICULTY  #",
+                    "####################\n"
+                ], [
+                    ("[ Easy ]","game","bot_easy"),
+                    ("[ Hard ]\n","game","bot_hard"),
+                    ("[ Return to Menu ]", "menu", "main_menu")
+                ]
+
     def draw(self, game=None):
         curr = self.screens(self.current)
         scrtype = self.type
@@ -91,7 +102,10 @@ class Screen:
             self.setting = False
             if scrtype != "game":
                 self.draw()
-
+def checkifdraw(game):
+    for i in game.board[0]:
+        if i == 0: return False
+    return True
 
 def update_settingfile():
     with open("settings.txt", "w+") as file:
@@ -106,7 +120,6 @@ def change_setting(setting,newvalue):
 
 def main():
     game = Game()
-    bot = Bot(game)
     screen = Screen()
     screen.draw()
     #update_settingfile()
@@ -131,24 +144,34 @@ def main():
                 change_setting(setting,x[0])
                 screen.switch("settings_scr","menu")
             case "game":
+                if screen.current == "bot_hard":
+                    bot = Bot(game,"minimax")
+                    screen.current = "game_bot"
+                elif screen.current == "bot_easy":
+                    bot = Bot(game,"rand")
+                    screen.current = "game_bot"
                 game.new_game()
                 screen.draw(game)
                 while screen.type != "menu":
-                    if game.winner is not None:
+                    if game.winner is not None or checkifdraw(game):
                         while True:
+                            wintext = "\nIT'S A DRAW!"
                             if screen.current == "game_bot":
                                 if game.winner == 1:
                                     wintext = "\nYOU WIN!"
-                                else:
+                                elif game.winner == 2:
                                     wintext = "\nBOT WINS!"
                             else:
-                                wintext = f"\nPLAYER {game.winner} WINS!"
+                                if game.winner is not None:
+                                    wintext = f"\nPLAYER {game.winner} WINS!"
                             x = input(wintext + " Would you like to play again? (y/n): ")
                             if x == 'y':
                                 game.new_game()
+                                print('')
                                 screen.draw(game)
                                 break
                             elif x == 'n':
+                                print('')
                                 screen.switch("main_menu","menu")
                                 break
                             else:
