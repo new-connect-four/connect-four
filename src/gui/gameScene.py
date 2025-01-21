@@ -46,7 +46,8 @@ class GameScene:
 
     def setup(self, **options):
         self.game = Game()
-        self.bot = Bot(self.game)
+        self.algorithm = options.get("botAlgorithm", "rand")
+        self.bot = Bot(self.game, algorithm=self.algorithm)
 
         self.playWithBot = options.get("playWithBot", False)
 
@@ -60,6 +61,7 @@ class GameScene:
         self.player2.name = "BOT" if self.playWithBot else "PLAYER 2"
 
         self.draw_drop(pygame.mouse.get_pos()[0])
+        self.update_scoreboards()
 
     def cleanup(self):
         pass
@@ -178,7 +180,6 @@ class GameScene:
                             return
                         self.game.make_move(col)
 
-                        print("\n".join([str(a) for a in self.game.board]))
                         color = (
                             self.player1.color
                             if self.game.current_player == const.PLAYER_ONE
@@ -208,7 +209,6 @@ class GameScene:
                             self.game_over_screen(None, None, draw=True)
 
                         if self.game.winner is not None:
-                            print("Wygrał", self.game.winner)
                             winner = (
                                 self.player1
                                 if self.game.winner == const.PLAYER_ONE
@@ -261,7 +261,7 @@ class GameScene:
                     self.scene_manager.switch_scene("MainMenuScene")
 
     def handle_selection(self):
-        print("Starting a new game")
+        pass
 
     def draw_board(self):
         size = 30
