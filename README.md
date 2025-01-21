@@ -10,8 +10,8 @@
 - Tryby:
   - Gra dla dwóch graczy (Player vs Player)
   - Gra z botem na dwóch różnych poziomach trudności (Player vs Bot)
-- Implementacja podstawowego bota do gry oraz zaawansowanego bota używającego algorytmu minimax 
- 
+- Implementacja podstawowego bota do gry oraz zaawansowanego bota używającego algorytmu minimax
+
 ## Wymagania
 Aby uruchomić grę potrzebujesz:
 
@@ -20,9 +20,9 @@ Aby uruchomić grę potrzebujesz:
 - Git
 - make (opcjonalnie)
 
-<details> 
+<details>
   <summary>Instalacja Pythona oraz Gita</summary>
-  
+
   ### Linux:
   ```bash
   sudo apt update
@@ -66,12 +66,18 @@ Aby uruchomić grę w trybie tekstowym, użyj komendy
 python3 -m src.terminal.main
 ```
 
+Aby uruchomić testy jednostkowe, użyj komendy
+```bash
+python3 -m unittest discover -s tests -v
+```
+
 ## Instalacja z `make`
 ```bash
 make setup # Tworzy wirtualne środowisko i instaluje wymagane biblioteki
 make gui # Uruchamia grę w trybie graficznym
 make terminal # Uruchamia grę w trybie tekstowym
 make help # Strona z pomocą
+make test # Uruchamia testy jednostkowe
 ```
 ## Skład zespołu
 - Mirosław Janiszewski [@mirkoooslaw](https://github.com/mirkoooslaw)
