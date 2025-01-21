@@ -11,6 +11,7 @@ help:
 	@echo "  make terminal    - Uruchamia gre w trybie terminal"
 	@echo "  make gui         - Uruchamia gre w trybie GUI"
 	@echo "  make help        - Wyświetla tą pomoc"
+	@echo "  make test        - Uruchamia testy jednostkowe"
 
 # Tworzy srodowisko wirtualne i instaluje potrzebne biblioteki
 .PHONY: setup
@@ -30,3 +31,8 @@ terminal:
 .PHONY: gui
 gui:
 	@$(PYTHON) -m src.gui.main
+
+# Run unit tests
+.PHONY: test
+test:
+	@$(PYTHON) -m unittest discover -s tests -v
